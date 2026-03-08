@@ -1,0 +1,41 @@
+{
+  "naive": {
+    "total_chunks": 1,
+    "chunks_with_code_changes": 1,
+    "chunks_with_skippable_files": 1,
+    "total_tokens": 1846,
+    "avg_tokens_per_chunk": 1846,
+    "relevant_tokens": 1120,
+    "noise_tokens": 564,
+    "context_precision": 66.5
+  },
+  "smart": {
+    "total_files": 15,
+    "skipped_files": 5,
+    "skipped_names": [
+      "yarn.lock",
+      "package-lock.json",
+      "dist/bundle.min.js",
+      "static/logo.png",
+      "node_modules/lodash/lodash.js"
+    ],
+    "reviewable_files": 10,
+    "priority_distribution": {
+      "high": 4,
+      "medium": 2,
+      "normal": 4
+    },
+    "total_chunks": 10,
+    "scoped_chunks": 6,
+    "scope_rate": 60.0,
+    "total_tokens": 1113,
+    "relevant_tokens": 1018,
+    "avg_tokens_per_chunk": 111,
+    "context_precision": 91.5
+  },
+  "comparison": {
+    "precision_gain": 25.0,
+    "token_savings": 733,
+    "token_savings_pct": 39.7
+  }
+}

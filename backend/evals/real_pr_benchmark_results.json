@@ -1,0 +1,258 @@
+[
+  {
+    "pr_number": 66276,
+    "pr_title": "fix(client): daily challenge solution downloads as challenge",
+    "diff_lines": 21,
+    "total_files": 1,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 1,
+      "tokens": 218,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 2,
+      "tokens": 113,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 105,
+      "token_savings_pct": 48.2
+    }
+  },
+  {
+    "pr_number": 66269,
+    "pr_title": "feat(curriculum): add queue data structure lab",
+    "diff_lines": 255,
+    "total_files": 4,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 1,
+      "tokens": 1580,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 4,
+      "tokens": 1279,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 301,
+      "token_savings_pct": 19.1
+    }
+  },
+  {
+    "pr_number": 66266,
+    "pr_title": "fix(curriculum): enforce recursion in Build a Countdown chal",
+    "diff_lines": 17,
+    "total_files": 1,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 1,
+      "tokens": 166,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 1,
+      "tokens": 62,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 104,
+      "token_savings_pct": 62.7
+    }
+  },
+  {
+    "pr_number": 66263,
+    "pr_title": "fix(deps): update dependency @aws-sdk/client-ses to v3.1000.",
+    "diff_lines": 66,
+    "total_files": 2,
+    "skipped_files": 1,
+    "skipped_names": [
+      "pnpm-lock.yaml"
+    ],
+    "naive": {
+      "chunks": 1,
+      "tokens": 667,
+      "precision": 20.2,
+      "chunks_with_junk": 1
+    },
+    "smart": {
+      "chunks": 1,
+      "tokens": 70,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 79.8,
+      "token_savings": 597,
+      "token_savings_pct": 89.5
+    }
+  },
+  {
+    "pr_number": 66262,
+    "pr_title": "chore(deps): update dependency @types/node to v24.10.15",
+    "diff_lines": 524,
+    "total_files": 1,
+    "skipped_files": 1,
+    "skipped_names": [
+      "pnpm-lock.yaml"
+    ],
+    "naive": {
+      "chunks": 3,
+      "tokens": 4998,
+      "precision": 0.6,
+      "chunks_with_junk": 3
+    },
+    "smart": {
+      "chunks": 0,
+      "tokens": 0,
+      "precision": 0.0,
+      "scoped_chunks_pct": 0
+    },
+    "improvement": {
+      "precision_gain": -0.6,
+      "token_savings": 4998,
+      "token_savings_pct": 100.0
+    }
+  },
+  {
+    "pr_number": 66259,
+    "pr_title": "feat(client): add tsconfig support to editor and use it in t",
+    "diff_lines": 594,
+    "total_files": 18,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 3,
+      "tokens": 5217,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 12,
+      "tokens": 724,
+      "precision": 100.0,
+      "scoped_chunks_pct": 25.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 4493,
+      "token_savings_pct": 86.1
+    }
+  },
+  {
+    "pr_number": 66258,
+    "pr_title": "fix: support high contrst mode for UniversalNav (#58807)",
+    "diff_lines": 105,
+    "total_files": 2,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 1,
+      "tokens": 920,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 2,
+      "tokens": 735,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 185,
+      "token_savings_pct": 20.1
+    }
+  },
+  {
+    "pr_number": 66256,
+    "pr_title": "feat(curriculum): add npm review page",
+    "diff_lines": 174,
+    "total_files": 4,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 1,
+      "tokens": 1720,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 4,
+      "tokens": 1417,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 303,
+      "token_savings_pct": 17.6
+    }
+  },
+  {
+    "pr_number": 66255,
+    "pr_title": "feat(curriculum): add npm quiz",
+    "diff_lines": 510,
+    "total_files": 4,
+    "skipped_files": 0,
+    "skipped_names": [],
+    "naive": {
+      "chunks": 2,
+      "tokens": 2403,
+      "precision": 100.0,
+      "chunks_with_junk": 0
+    },
+    "smart": {
+      "chunks": 4,
+      "tokens": 2104,
+      "precision": 100.0,
+      "scoped_chunks_pct": 0.0
+    },
+    "improvement": {
+      "precision_gain": 0.0,
+      "token_savings": 299,
+      "token_savings_pct": 12.4
+    }
+  },
+  {
+    "pr_number": 66254,
+    "pr_title": "chore(deps): update dependency eslint to v9.39.3",
+    "diff_lines": 2079,
+    "total_files": 1,
+    "skipped_files": 1,
+    "skipped_names": [
+      "pnpm-lock.yaml"
+    ],
+    "naive": {
+      "chunks": 11,
+      "tokens": 21568,
+      "precision": 0.1,
+      "chunks_with_junk": 11
+    },
+    "smart": {
+      "chunks": 0,
+      "tokens": 0,
+      "precision": 0.0,
+      "scoped_chunks_pct": 0
+    },
+    "improvement": {
+      "precision_gain": -0.1,
+      "token_savings": 21568,
+      "token_savings_pct": 100.0
+    }
+  }
+]

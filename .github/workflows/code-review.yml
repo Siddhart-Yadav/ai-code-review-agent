@@ -1,0 +1,36 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger AI Code Review
+        env:
+          REVIEW_API_URL: ${{ secrets.REVIEW_API_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "${REVIEW_API_URL}/api/v1/reviews" \
+            -H "Content-Type: application/json" \
+            -d "{\"pr_url\": \"${PR_URL}\", \"triggered_by\": \"github_action\"}")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            echo "Review API returned error: $BODY"
+            exit 1
+          fi
+          
+          echo "Review submitted successfully"
+          echo "$BODY" | python3 -m json.tool

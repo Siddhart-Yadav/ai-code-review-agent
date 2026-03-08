@@ -1,0 +1,82 @@
+name: "AI Code Review Agent"
+description: "Automated multi-agent AI code review for pull requests"
+author: "Siddharth Yadav"
+
+inputs:
+  api_url:
+    description: "URL of the AI Code Review API"
+    required: true
+  github_token:
+    description: "GitHub token for posting review comments"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.api_url }}" ]; then
+          echo "::error::api_url input is required"
+          exit 1
+        fi
+        if [ -z "${{ inputs.github_token }}" ]; then
+          echo "::error::github_token input is required"
+          exit 1
+        fi
+
+    - name: Run AI Code Review
+      shell: bash
+      env:
+        REVIEW_API_URL: ${{ inputs.api_url }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: |
+        PR_URL="${{ github.event.pull_request.html_url }}"
+
+        if [ -z "$PR_URL" ]; then
+          echo "::error::This action must run on pull_request events"
+          exit 1
+        fi
+
+        echo "Submitting PR for AI review: ${PR_URL}"
+
+        HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+          --connect-timeout 10 \
+          --max-time 30 \
+          -X POST \
+          "${REVIEW_API_URL}/api/v1/reviews" \
+          -H "Content-Type: application/json" \
+          -d "{\"pr_url\": \"${PR_URL}\", \"triggered_by\": \"github_action\"}")
+
+        HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+        RESPONSE_BODY=$(echo "$HTTP_RESPONSE" | sed '$d')
+
+        if [ "$HTTP_STATUS" -ge 400 ]; then
+          echo "::error::API returned HTTP ${HTTP_STATUS}"
+          echo "$RESPONSE_BODY"
+          exit 1
+        fi
+
+        # Parse review ID with explicit error handling
+        REVIEW_ID=$(echo "$RESPONSE_BODY" | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    if 'id' not in data:
+        print('ERROR: Response missing id field', file=sys.stderr)
+        sys.exit(1)
+    print(data['id'])
+except json.JSONDecodeError as e:
+    print(f'ERROR: Invalid JSON response: {e}', file=sys.stderr)
+    sys.exit(1)
+")
+
+        if [ $? -ne 0 ] || [ -z "$REVIEW_ID" ]; then
+          echo "::error::Failed to parse review ID from API response"
+          echo "$RESPONSE_BODY"
+          exit 1
+        fi
+
+        echo "Review ID: ${REVIEW_ID}"
+        echo "review_id=${REVIEW_ID}" >> "$GITHUB_OUTPUT"
+        echo "Review submitted successfully"

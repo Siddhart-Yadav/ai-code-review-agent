@@ -1,0 +1,13 @@
+[
+  {
+    "case_id": "missing_tests",
+    "name": "Payment processing with zero test coverage",
+    "detected": 2,
+    "expected": 2,
+    "total_findings": 11,
+    "detection_rate": 100.0,
+    "missed": [],
+    "elapsed_seconds": 92.3883547782898,
+    "error": null
+  }
+]

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Code Review Agent — Full Code Review Report</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a2e; background: #f8f9fb; line-height: 1.6; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+  header { text-align: center; padding: 48px 0 32px; }
+  header h1 { font-size: 2.4rem; color: #1B2A4A; margin-bottom: 4px; }
+  header p.subtitle { font-size: 1.3rem; color: #64748b; }
+  header p.date { font-size: 0.95rem; color: #94a3b8; margin-top: 8px; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 32px 0; }
+  .stat-card { border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-card .count { font-size: 2.2rem; font-weight: 700; }
+  .stat-card .label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+  .stat-critical { background: #fef2f2; border: 1px solid #fecaca; }
+  .stat-critical .count { color: #991b1b; }
+  .stat-critical .label { color: #b91c1c; }
+  .stat-high { background: #fffbeb; border: 1px solid #fde68a; }
+  .stat-high .count { color: #92400e; }
+  .stat-high .label { color: #b45309; }
+  .stat-medium { background: #eff6ff; border: 1px solid #bfdbfe; }
+  .stat-medium .count { color: #1e40af; }
+  .stat-medium .label { color: #2563eb; }
+  .stat-total { background: #f1f5f9; border: 1px solid #cbd5e1; }
+  .stat-total .count { color: #334155; }
+  .stat-total .label { color: #64748b; }
+
+  h2 { font-size: 1.5rem; color: #1B2A4A; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+  h3 { font-size: 1.1rem; color: #334155; margin: 24px 0 8px; }
+
+  .priorities { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; margin: 16px 0 32px; }
+  .priorities ol { padding-left: 24px; }
+  .priorities li { margin-bottom: 10px; font-size: 0.95rem; }
+  .priorities li strong { color: #1B2A4A; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 32px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 0.88rem; }
+  th { background: #1B2A4A; color: #fff; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8fafc; }
+
+  .sev { display: inline-block; padding: 2px 10px; border-radius: 4px; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .sev-critical { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  .sev-high { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+  .sev-medium { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .sev-low { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+  .area { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 500; }
+  .area-backend { background: #f3e8ff; color: #6b21a8; }
+  .area-frontend { background: #e0f2fe; color: #075985; }
+  .area-infra { background: #fef3c7; color: #92400e; }
+
+  .file-ref { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; color: #64748b; word-break: break-all; }
+  .rec { color: #475569; }
+
+  .strengths { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 24px; margin: 16px 0; }
+  .strengths ul { list-style: none; padding: 0; }
+  .strengths li { padding: 6px 0 6px 24px; position: relative; font-size: 0.95rem; }
+  .strengths li::before { content: "\2713"; position: absolute; left: 0; color: #16a34a; font-weight: bold; }
+
+  @media print {
+    body { background: #fff; }
+    .container { max-width: 100%; padding: 0; }
+    table { font-size: 0.75rem; page-break-inside: auto; }
+    tr { page-break-inside: avoid; }
+    h2 { page-break-after: avoid; }
+    .summary-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>AI Code Review Agent</h1>
+  <p class="subtitle">Full Code Review Report</p>
+  <p class="date">March 6, 2026</p>
+</header>
+
+<div class="summary-grid">
+  <div class="stat-card stat-critical"><div class="count">3</div><div class="label">Critical</div></div>
+  <div class="stat-card stat-high"><div class="count">14</div><div class="label">High</div></div>
+  <div class="stat-card stat-medium"><div class="count">20</div><div class="label">Medium</div></div>
+  <div class="stat-card stat-total"><div class="count">37</div><div class="label">Total Findings</div></div>
+</div>
+
+<h2>Executive Summary</h2>
+<p style="margin-bottom:16px;">This report presents a comprehensive code review of the AI Code Review Agent project covering the FastAPI backend, Next.js frontend, Docker infrastructure, and CI/CD pipelines. The review identified <strong>37 findings</strong> across all severity levels: 3 critical, 14 high, and 20 medium. The most urgent issues involve hardcoded credentials committed to version control and security gaps in webhook authentication.</p>
+<p>The project has strong architectural foundations &mdash; LangGraph parallel orchestration, Pydantic structured output enforcement, and hybrid SAST+LLM analysis &mdash; but needs immediate attention on secrets management, error handling, and test coverage before production use.</p>
+
+<h2>Top 5 Priority Actions</h2>
+<div class="priorities">
+<ol>
+  <li><strong>Rotate credentials &amp; scrub Git history:</strong> Database passwords and GCP Project ID are committed to the repo. Rotate immediately and use <code>git filter-branch</code> to remove <code>.env</code> from history.</li>
+  <li><strong>Fix webhook authentication:</strong> Webhook signature validation is silently skipped when the secret isn't configured. Reject unsigned requests with a 403.</li>
+  <li><strong>Harden Docker setup:</strong> Add non-root user to backend Dockerfile, implement multi-stage builds, and stop exposing Postgres/Redis ports externally.</li>
+  <li><strong>Sanitize frontend rendering:</strong> All API-sourced content is rendered unsanitized. Add DOMPurify and proper TypeScript types for API responses.</li>
+  <li><strong>Add test coverage:</strong> No unit tests exist for core backend logic. Add a pytest suite for the parser, services, cache layer, and error paths.</li>
+</ol>
+</div>
+
+<h2>Detailed Findings</h2>
+
+<h3>Critical &amp; High Severity</h3>
+<table>
+<tr><th style="width:50px">#</th><th style="width:75px">Area</th><th style="width:80px">Severity</th><th>Finding</th><th style="width:180px">File(s)</th><th>Recommendation</th></tr>
+<tr><td>B-01</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-critical">Critical</span></td><td>Hardcoded database credentials committed to Git</td><td class="file-ref">backend/.env, alembic.ini</td><td class="rec">Rotate passwords immediately. Remove .env from Git history. Use environment-based secrets.</td></tr>
+<tr><td>B-02</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-critical">Critical</span></td><td>GCP Project ID exposed in version-controlled .env</td><td class="file-ref">backend/.env</td><td class="rec">Remove from Git history. Use .env.example with placeholders only.</td></tr>
+<tr><td>I-01</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-critical">Critical</span></td><td>Hardcoded Postgres credentials in docker-compose.yml</td><td class="file-ref">docker-compose.yml</td><td class="rec">Use variable substitution: ${POSTGRES_PASSWORD}. Keep real values in untracked .env.</td></tr>
+<tr><td>B-03</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>Webhook signature validation silently skipped when secret not configured</td><td class="file-ref">app/api/routes.py:119-159</td><td class="rec">Require webhook secret. Return 403 if not configured.</td></tr>
+<tr><td>B-04</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>Exception details leaked to API clients in error responses</td><td class="file-ref">app/api/routes.py:74-75</td><td class="rec">Return generic error messages. Log full details server-side only.</td></tr>
+<tr><td>B-05</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>Background task failures not persisted or surfaceable</td><td class="file-ref">app/api/routes.py:162-167</td><td class="rec">Store FAILED status in DB. Return job ID for status polling.</td></tr>
+<tr><td>B-06</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>Race condition between cache lookup and DB query</td><td class="file-ref">review_service.py:39-44</td><td class="rec">Use DB as source of truth. Use distributed locks or atomic operations.</td></tr>
+<tr><td>B-07</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>Auto-commit in DB session can commit partial changes on error</td><td class="file-ref">app/core/database.py:23-32</td><td class="rec">Let endpoints manage commits explicitly or wrap in transaction context.</td></tr>
+<tr><td>B-08</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>PR files fetched twice from GitHub API (N+1 pattern)</td><td class="file-ref">github_service.py:64-80</td><td class="rec">Store pr.get_files() result once and reuse. Add pagination for large PRs.</td></tr>
+<tr><td>B-09</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-high">High</span></td><td>Services tightly coupled with no dependency injection</td><td class="file-ref">review_service.py:32</td><td class="rec">Accept dependencies as constructor params. Enable mock injection for testing.</td></tr>
+<tr><td>F-01</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-high">High</span></td><td>Unsafe type casting on meta_review without runtime validation</td><td class="file-ref">reviews/[id]/page.tsx:80-83</td><td class="rec">Add Zod or type guards for runtime validation before casting.</td></tr>
+<tr><td>F-02</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-high">High</span></td><td>Potential XSS via unsanitized API content rendered in JSX</td><td class="file-ref">reviews/[id]/page.tsx, findings-list.tsx</td><td class="rec">Sanitize all API-sourced content with DOMPurify.</td></tr>
+<tr><td>F-03</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-high">High</span></td><td>No React Error Boundary: component errors crash entire page</td><td class="file-ref">All pages</td><td class="rec">Implement Error Boundary component with graceful fallback UI.</td></tr>
+<tr><td>F-04</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-high">High</span></td><td>meta_review typed as Record&lt;string, unknown&gt; (effectively any)</td><td class="file-ref">src/lib/api.ts:34</td><td class="rec">Define proper MetaReview interface with required properties.</td></tr>
+<tr><td>I-02</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-high">High</span></td><td>GCloud credentials directory mounted into container</td><td class="file-ref">docker-compose.yml</td><td class="rec">Use Application Default Credentials or service account keys instead.</td></tr>
+<tr><td>I-03</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-high">High</span></td><td>Backend Dockerfile runs as root</td><td class="file-ref">backend/Dockerfile</td><td class="rec">Add non-root user with USER directive.</td></tr>
+<tr><td>I-04</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-high">High</span></td><td>CI/CD silently suppresses JSON parsing errors (2&gt;/dev/null)</td><td class="file-ref">github-action/action.yml</td><td class="rec">Remove silent error suppression. Add explicit JSON validation.</td></tr>
+</table>
+
+<h3>Medium Severity</h3>
+<table>
+<tr><th style="width:50px">#</th><th style="width:75px">Area</th><th style="width:80px">Severity</th><th>Finding</th><th style="width:180px">File(s)</th><th>Recommendation</th></tr>
+<tr><td>B-10</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>CORS allows all methods and headers (allow_methods=['*'])</td><td class="file-ref">app/main.py:27-33</td><td class="rec">Restrict to needed methods: GET, POST, OPTIONS.</td></tr>
+<tr><td>B-11</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Duplicate schema definitions across agents/ and models/</td><td class="file-ref">agents/schemas.py, models/schemas.py</td><td class="rec">Consolidate into a single schema module.</td></tr>
+<tr><td>B-12</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>No rate limiting on API endpoints</td><td class="file-ref">app/main.py</td><td class="rec">Add slowapi or similar rate limiting middleware.</td></tr>
+<tr><td>B-13</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Sensitive data potentially logged when DEBUG=true</td><td class="file-ref">app/core/database.py:10</td><td class="rec">Never enable DEBUG in production. Add log redaction.</td></tr>
+<tr><td>B-14</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Large diffs loaded entirely into memory</td><td class="file-ref">review_service.py:63-64</td><td class="rec">Add max diff size limits. Process in streaming chunks.</td></tr>
+<tr><td>B-15</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>No unit tests for core logic (only eval test cases exist)</td><td class="file-ref">backend/evals/</td><td class="rec">Add pytest suite for parser, services, and error handling.</td></tr>
+<tr><td>B-16</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Webhook payload not validated with Pydantic model</td><td class="file-ref">app/api/routes.py:142-152</td><td class="rec">Define Pydantic model for GitHub webhook payload validation.</td></tr>
+<tr><td>B-17</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Regex patterns recompiled on every call in file priority</td><td class="file-ref">code_parser.py:215-227</td><td class="rec">Pre-compile patterns as module-level constants.</td></tr>
+<tr><td>B-18</td><td><span class="area area-backend">Backend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Missing input validation / SSRF risk on PR URL</td><td class="file-ref">github_service.py:35-42</td><td class="rec">Validate URL domain matches expected GitHub instances.</td></tr>
+<tr><td>F-05</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Array index used as React key in multiple components</td><td class="file-ref">findings-list.tsx:38, page.tsx:207</td><td class="rec">Use stable unique identifiers or hash of content.</td></tr>
+<tr><td>F-06</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Hardcoded color mappings duplicated across components</td><td class="file-ref">reviews/page.tsx, findings-list.tsx</td><td class="rec">Extract to shared constants file in /lib.</td></tr>
+<tr><td>F-07</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-medium">Medium</span></td><td>No Content Security Policy headers configured</td><td class="file-ref">next.config.mjs</td><td class="rec">Add CSP headers to mitigate XSS attacks.</td></tr>
+<tr><td>F-08</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-medium">Medium</span></td><td>API URL silently falls back to localhost in production</td><td class="file-ref">src/lib/api.ts:1</td><td class="rec">Validate NEXT_PUBLIC_API_URL is set in production builds.</td></tr>
+<tr><td>F-09</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Missing ARIA labels on icons, badges, and status indicators</td><td class="file-ref">Multiple components</td><td class="rec">Add aria-label attributes for screen reader accessibility.</td></tr>
+<tr><td>F-10</td><td><span class="area area-frontend">Frontend</span></td><td><span class="sev sev-medium">Medium</span></td><td>Color-only differentiation for severity and status</td><td class="file-ref">Multiple components</td><td class="rec">Add icons or text patterns for color-blind accessibility.</td></tr>
+<tr><td>I-05</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-medium">Medium</span></td><td>PostgreSQL and Redis ports exposed to 0.0.0.0</td><td class="file-ref">docker-compose.yml</td><td class="rec">Bind to 127.0.0.1 only or remove external port mappings.</td></tr>
+<tr><td>I-06</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-medium">Medium</span></td><td>No container resource limits defined</td><td class="file-ref">docker-compose.yml</td><td class="rec">Add CPU and memory limits via deploy.resources.</td></tr>
+<tr><td>I-07</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-medium">Medium</span></td><td>Backend Dockerfile not multi-stage (build tools in prod image)</td><td class="file-ref">backend/Dockerfile</td><td class="rec">Use multi-stage build to exclude build-essential from final image.</td></tr>
+<tr><td>I-08</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-medium">Medium</span></td><td>No Dependabot or automated dependency updates</td><td class="file-ref">.github/</td><td class="rec">Add .github/dependabot.yml for pip and npm ecosystems.</td></tr>
+<tr><td>I-09</td><td><span class="area area-infra">Infra</span></td><td><span class="sev sev-medium">Medium</span></td><td>No Docker image vulnerability scanning in CI</td><td class="file-ref">.github/workflows/</td><td class="rec">Add Trivy or Snyk scanning step.</td></tr>
+</table>
+
+<h2>Project Strengths</h2>
+<div class="strengths">
+<ul>
+  <li><strong>LangGraph parallel fan-out/fan-in</strong> gives true concurrent agent execution &mdash; a significant advantage over sequential orchestration frameworks like CrewAI.</li>
+  <li><strong>3-layer structured output guarantee</strong> (Gemini response_schema + Pydantic validation + auto-retry) is a robust pattern that eliminates LLM output parsing failures.</li>
+  <li><strong>Hybrid SAST + LLM analysis</strong> combining deterministic Semgrep with probabilistic agents leverages the strengths of each approach.</li>
+  <li><strong>Bidirectional MCP</strong> &mdash; the project serves as both an MCP server (IDE-callable) and MCP client (consumes Semgrep), showing thoughtful integration design.</li>
+  <li><strong>Evaluation suite</strong> with 8 intentionally-bad-code test cases and known expected detections provides a solid regression testing foundation.</li>
+  <li><strong>Clean frontend UX</strong> with shadcn/ui components, loading skeletons, score visualization, and proper status indicators.</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>
