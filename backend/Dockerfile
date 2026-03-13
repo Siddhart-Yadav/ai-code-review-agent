@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
 # --- Runtime stage: lean production image ---
 FROM python:3.12-slim
@@ -22,9 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create non-root user
 RUN useradd -m -u 1000 appuser
 
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
-RUN pip install --no-cache-dir /wheels/*
+COPY --from=builder /install /usr/local
 
 COPY --chown=appuser:appuser . .
 
