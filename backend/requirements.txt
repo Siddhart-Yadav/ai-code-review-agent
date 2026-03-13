@@ -1,8 +1,8 @@
 # FastAPI & Server
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
-pydantic==2.10.4
-pydantic-settings==2.7.1
+pydantic>=2.11.0,<3.0.0
+pydantic-settings>=2.7.1,<3.0.0
 
 # Database
 sqlalchemy[asyncio]==2.0.36
@@ -17,9 +17,9 @@ redis[hiredis]==5.2.1
 langgraph==0.2.60
 
 # LLM Providers (install all — only the configured one is used at runtime)
-google-genai>=1.0.0
-openai>=1.30.0
-anthropic>=0.30.0
+google-genai>=1.0.0,<2.0.0
+openai>=1.30.0,<2.0.0
+anthropic>=0.30.0,<1.0.0
 
 # GitHub
 PyGithub==2.5.0
