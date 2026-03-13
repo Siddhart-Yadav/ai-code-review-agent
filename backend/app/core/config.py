@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     CACHE_TTL_SECONDS: int = 86400  # 24 hours
 
-    # LLM Provider — "gemini", "openai", "anthropic", or "groq"
-    LLM_PROVIDER: str = "gemini"
+    # LLM Provider — "gemini", "openai", "anthropic", "groq", or "openrouter"
+    LLM_PROVIDER: str = "openrouter"
 
     # Gemini (Vertex AI via ADC, or API key)
     GCP_PROJECT_ID: str = ""
@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
 
+    # OpenRouter (free Llama 3.3 70B, OpenAI-compatible)
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "meta-llama/llama-3.3-70b-instruct:free"
+
     # GitHub
     GITHUB_TOKEN: str = ""
     GITHUB_WEBHOOK_SECRET: str = ""
@@ -61,41 +65,46 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_llm_config(self) -> "Settings":
-        provider = self.LLM_PROVIDER.lower()
+        # Check if the selected provider has its key configured
+        provider_keys = {
+            "openrouter": bool(self.OPENROUTER_API_KEY),
+            "groq": bool(self.GROQ_API_KEY),
+            "gemini": bool(self.GCP_PROJECT_ID or self.GEMINI_API_KEY),
+            "openai": bool(self.OPENAI_API_KEY),
+            "anthropic": bool(self.ANTHROPIC_API_KEY),
+        }
 
-        # Auto-detect provider from available API keys
-        if provider == "gemini" and not self.GCP_PROJECT_ID and not self.GEMINI_API_KEY:
-            if self.GROQ_API_KEY:
-                self.LLM_PROVIDER = "groq"
-                logger.info("Auto-detected LLM provider: groq")
-            elif self.OPENAI_API_KEY:
-                self.LLM_PROVIDER = "openai"
-                logger.info("Auto-detected LLM provider: openai")
-            elif self.ANTHROPIC_API_KEY:
-                self.LLM_PROVIDER = "anthropic"
-                logger.info("Auto-detected LLM provider: anthropic")
-            else:
-                self.DEMO_MODE = True
-                logger.warning(
-                    "No LLM API key configured. Running in demo mode only. "
-                    "Set GROQ_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY."
-                )
+        # If selected provider has its key, use it
+        if provider_keys.get(self.LLM_PROVIDER.lower(), False):
+            return self
 
+        # Auto-detect from available keys (priority: openrouter > groq > gemini > openai > anthropic)
+        for provider, has_key in provider_keys.items():
+            if has_key:
+                self.LLM_PROVIDER = provider
+                logger.info("Auto-detected LLM provider: %s", provider)
+                return self
+
+        # No keys at all — demo mode
+        self.DEMO_MODE = True
+        logger.warning(
+            "No LLM API key configured. Running in demo mode only. "
+            "Set OPENROUTER_API_KEY, GROQ_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY."
+        )
         return self
 
     @property
     def llm_configured(self) -> bool:
         """Check if any LLM provider is properly configured."""
         provider = self.LLM_PROVIDER.lower()
-        if provider == "gemini":
-            return bool(self.GCP_PROJECT_ID or self.GEMINI_API_KEY)
-        elif provider == "openai":
-            return bool(self.OPENAI_API_KEY)
-        elif provider == "anthropic":
-            return bool(self.ANTHROPIC_API_KEY)
-        elif provider == "groq":
-            return bool(self.GROQ_API_KEY)
-        return False
+        checks = {
+            "openrouter": bool(self.OPENROUTER_API_KEY),
+            "groq": bool(self.GROQ_API_KEY),
+            "gemini": bool(self.GCP_PROJECT_ID or self.GEMINI_API_KEY),
+            "openai": bool(self.OPENAI_API_KEY),
+            "anthropic": bool(self.ANTHROPIC_API_KEY),
+        }
+        return checks.get(provider, False)
 
 
 @lru_cache

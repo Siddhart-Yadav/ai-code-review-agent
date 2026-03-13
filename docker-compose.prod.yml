@@ -1,0 +1,110 @@
+version: "3.9"
+
+# Production compose for EC2 (t2.micro — 1GB RAM)
+# All services optimized for low memory usage
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/certbot/conf:/etc/letsencrypt:ro
+      - ./deploy/certbot/www:/var/www/certbot:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - NEXT_PUBLIC_API_URL=/api/v1
+    depends_on:
+      - backend
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      - DEMO_MODE=${DEMO_MODE:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: code_review
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Optimize for low memory
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c effective_cache_size=128MB
+      -c work_mem=2MB
+      -c maintenance_work_mem=32MB
+      -c max_connections=20
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 32mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 48M
+
+  # Auto-renew SSL certs
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./deploy/certbot/conf:/etc/letsencrypt
+      - ./deploy/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  pgdata:
+  redisdata:

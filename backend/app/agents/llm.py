@@ -388,6 +388,89 @@ def _call_groq_structured(
     )
 
 
+# ── Provider: OpenRouter (free Llama 3.3 70B, OpenAI-compatible) ──────
+
+_openrouter_client = None
+
+
+def _get_openrouter_client():
+    global _openrouter_client
+    if _openrouter_client is not None:
+        return _openrouter_client
+
+    from openai import OpenAI
+
+    if not settings.OPENROUTER_API_KEY:
+        raise RuntimeError("OpenRouter provider selected but OPENROUTER_API_KEY is not set.")
+
+    _openrouter_client = OpenAI(
+        api_key=settings.OPENROUTER_API_KEY,
+        base_url="https://openrouter.ai/api/v1",
+    )
+    logger.info("OpenRouter client initialized (model=%s)", settings.OPENROUTER_MODEL)
+    return _openrouter_client
+
+
+def _call_openrouter(system_prompt: str, user_prompt: str, temperature: float) -> str:
+    client = _get_openrouter_client()
+    response = client.chat.completions.create(
+        model=settings.OPENROUTER_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=temperature,
+        max_tokens=8192,
+    )
+    return response.choices[0].message.content or ""
+
+
+def _call_openrouter_structured(
+    system_prompt: str, user_prompt: str, response_model: type[T], temperature: float
+) -> T:
+    client = _get_openrouter_client()
+    schema = response_model.model_json_schema()
+    last_error = None
+
+    for attempt in range(MAX_RETRIES + 1):
+        prompt = user_prompt
+        if last_error and attempt > 0:
+            prompt += (
+                f"\n\n[RETRY — your previous response had a validation error: {last_error}. "
+                f"Please fix and return valid JSON matching the schema exactly.]"
+            )
+
+        response = client.chat.completions.create(
+            model=settings.OPENROUTER_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=temperature,
+            max_tokens=8192,
+            response_format={"type": "json_object"},
+        )
+
+        raw = response.choices[0].message.content or ""
+        try:
+            data = json.loads(raw)
+            result = response_model.model_validate(data)
+            if attempt > 0:
+                logger.info("Structured output succeeded on retry %d", attempt)
+            return result
+        except (json.JSONDecodeError, ValidationError) as e:
+            last_error = str(e)[:500]
+            logger.warning(
+                "Structured output validation failed (attempt %d/%d): %s",
+                attempt + 1, MAX_RETRIES + 1, last_error[:200],
+            )
+
+    raise ValueError(
+        f"OpenRouter failed to produce valid {response_model.__name__} after {MAX_RETRIES + 1} attempts. "
+        f"Last error: {last_error}"
+    )
+
+
 # ── Unified API ─────────────────────────────────────────────────────────
 
 _PROVIDERS = {
@@ -395,6 +478,7 @@ _PROVIDERS = {
     "openai": (_call_openai, _call_openai_structured),
     "anthropic": (_call_anthropic, _call_anthropic_structured),
     "groq": (_call_groq, _call_groq_structured),
+    "openrouter": (_call_openrouter, _call_openrouter_structured),
 }
 
 
