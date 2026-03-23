@@ -14,7 +14,7 @@ alembic==1.14.1
 redis[hiredis]==5.2.1
 
 # LangGraph (orchestration only — no LangChain LLM wrappers)
-langgraph==0.2.60
+langgraph==1.1.2
 
 # LLM Providers (install all — only the configured one is used at runtime)
 google-genai>=1.0.0,<2.0.0
