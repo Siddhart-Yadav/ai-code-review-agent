@@ -26,7 +26,7 @@ PyGithub==2.5.0
 GitPython==3.1.44
 
 # Code Parsing
-tree-sitter==0.23.2
+tree-sitter==0.25.2
 
 # MCP (Model Context Protocol) — server + client SDK
 mcp[cli]
